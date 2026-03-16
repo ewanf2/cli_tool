@@ -9,21 +9,29 @@ import (
 	"fmt"
 	"github.com/spf13/cobra"
 	"strconv"
+	kube "github.com/ewanf2/cli_tool/internal/kube"
+	"k8s.io/client-go/tools/clientcmd"
+	"k8s.io/client-go/kubernetes"
 )
 
-
+var (
+	kubeConfig clientcmd.ClientConfig
+	kubeClient kubernetes.Interface
+	kubeNamespace string
+)
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "greeter CLI",
+	Use:   "greet",
 	Short: "CLI that does stuff",
-	Long: `CLI that does a lot of stuff For example:
-
-Cobra is a CLI library for Go that empowers applications.
-This application is a tool to generate the needed files
-to quickly create a Cobra application.`,
+	Long: `CLI that does a lot of stuff For example:`,
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
+	PersistentPreRun: func(cmd *cobra.Command, args []string) {
+		kubeConfig = kube.GetKubeConfig()
+		kubeClient,_ = kube.GetClientset(kubeConfig)
+		kubeNamespace, _ = kube.GetNamespace(kubeConfig)
+	},
 	Run: func(cmd *cobra.Command, args []string) { 
 		fmt.Println("Welcome to my CLI. hey lol")
 	},
@@ -38,7 +46,7 @@ var greetCMD = &cobra.Command{
 }
 
 var quickmaths = &cobra.Command{
-	Use: "quickmaffs",
+	Use: "add",
 	Short: "maths innit",
 	Long: "maths innit bruv",
 	Args: cobra.ExactArgs(2),
