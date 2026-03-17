@@ -7,7 +7,7 @@ import (
 	"k8s.io/client-go/tools/clientcmd"
 	// "k8s.io/client-go/util/homedir"
 )
-
+// Creating kubeconfig file, contains things like namespaces and stuff
 func GetKubeConfig() (clientcmd.ClientConfig) {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	configOverr := &clientcmd.ConfigOverrides{}
@@ -16,6 +16,7 @@ func GetKubeConfig() (clientcmd.ClientConfig) {
 	return kubeConfig
 }
 
+// Creating clientset based off kubeconfig. Object with methods of
 func GetClientset(kubeconfig clientcmd.ClientConfig) (kubernetes.Interface, error) {
 
 	restConfig, err := kubeconfig.ClientConfig()
