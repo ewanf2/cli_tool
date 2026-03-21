@@ -2,10 +2,13 @@
 package kube
 
 import (
+	"context"
 	"fmt"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	// "k8s.io/client-go/util/homedir"
+	
 )
 // Creating kubeconfig file, contains things like namespaces and stuff
 func GetKubeConfig() (clientcmd.ClientConfig) {
@@ -40,3 +43,18 @@ func GetNamespace(kubeconfig clientcmd.ClientConfig) (string, error) {
 	}
 	return ns, nil
 }
+
+func GetDeploy(kubeClient kubernetes.Interface, namespace string, release string) ( error) {
+	ctx := context.TODO()
+	filter := metav1.ListOptions{ 
+		LabelSelector : fmt.Sprintf("release=%s",release),
+	}
+	d,_ := kubeClient.AppsV1().Deployments(namespace).List(ctx,filter)
+	for _, d:= range d.Items {
+		fmt.Printf(d.Name)
+			for _, c := range d.Status.Conditions {
+				fmt.Printf("Condition: %-20s = %-20s because %-20s\n",c.Type, c.Status, c.Reason)
+			}
+		}
+	return nil
+	}

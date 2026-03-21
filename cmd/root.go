@@ -22,7 +22,7 @@ var (
 
 // rootCmd represents the base command when called without any subcommands
 var rootCmd = &cobra.Command{
-	Use:   "greet",
+	Use:   "helmeye",
 	Short: "CLI that does stuff",
 	Long: `CLI that does a lot of stuff For example:`,
 	// Uncomment the following line if your bare application
