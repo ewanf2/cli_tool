@@ -2,12 +2,14 @@
 package kube
 
 import (
+	"os"
 	"context"
 	"fmt"
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	// "k8s.io/client-go/util/homedir"
+	"github.com/olekukonko/tablewriter"
 	
 )
 // Creating kubeconfig file, contains things like namespaces and stuff
@@ -49,12 +51,33 @@ func GetDeploy(kubeClient kubernetes.Interface, namespace string, release string
 	filter := metav1.ListOptions{ 
 		LabelSelector : fmt.Sprintf("release=%s",release),
 	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.Header([]string{"Deployment name","Type","Status","Reason"})
 	d,_ := kubeClient.AppsV1().Deployments(namespace).List(ctx,filter)
 	for _, d:= range d.Items {
-		fmt.Printf(d.Name)
 			for _, c := range d.Status.Conditions {
-				fmt.Printf("Condition: %-20s = %-20s because %-20s\n",c.Type, c.Status, c.Reason)
+				table.Append([]string{d.Name,string(c.Type),string(c.Status),string(c.Reason)})
 			}
 		}
+	table.Render()
+	return nil
+	}
+
+func GetStateful(kubeClient kubernetes.Interface, namespace string, release string) ( error) {
+	ctx := context.TODO()
+	filter := metav1.ListOptions{ 
+		LabelSelector : fmt.Sprintf("release=%s",release),
+	}
+
+	table := tablewriter.NewWriter(os.Stdout)
+	table.Header([]string{"resource name","Type","Status","Reason"})
+	d,_ := kubeClient.AppsV1().StatefulSets(namespace).List(ctx,filter)
+	for _, d:= range d.Items {
+			for _, c := range d.Status.Conditions {
+				table.Append([]string{d.Name,string(c.Type),string(c.Status),string(c.Reason)})
+			}
+		}
+	table.Render()
 	return nil
 	}

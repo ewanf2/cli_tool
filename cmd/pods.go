@@ -17,13 +17,15 @@ import (
 )
 
 var getpods = &cobra.Command{
-	Use: "deployment",
+	Use: "get",
 	Short: "Get pods",
 	Long: "Get pods init",
 	// Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		kube.GetDeploy(kubeClient, kubeNamespace,"elastic-ef170")
-		fmt.Printf("nice")
+		kube.GetStateful(kubeClient, kubeNamespace, "elastic-ef170")
+
+		fmt.Println("worked")
 		return nil
 	},
 }
