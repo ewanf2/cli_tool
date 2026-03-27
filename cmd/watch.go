@@ -17,7 +17,7 @@ import (
 )
 
 var getpods = &cobra.Command{
-	Use: "get",
+	Use: "watch",
 	Short: "Get pods",
 	Long: "Get pods init",
 	// Args: cobra.ExactArgs(1),
