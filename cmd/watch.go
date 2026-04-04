@@ -20,12 +20,12 @@ var getpods = &cobra.Command{
 	Use: "watch",
 	Short: "Get pods",
 	Long: "Get pods init",
-	// Args: cobra.ExactArgs(1),
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		kube.GetDeploy(kubeClient, kubeNamespace,"elastic-ef170")
-		kube.GetStateful(kubeClient, kubeNamespace, "elastic-ef170")
-
-		fmt.Println("worked")
+		releaseName := fmt.Sprintf(args[0])
+		kube.GetDeploy(kubeClient, kubeNamespace,releaseName)
+		kube.GetStateful(kubeClient, kubeNamespace, releaseName)
+		kube.GetDaemonset(kubeClient, kubeNamespace, releaseName)
 		return nil
 	},
 }

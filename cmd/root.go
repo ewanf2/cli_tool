@@ -8,7 +8,6 @@ import (
 	"os"
 	"fmt"
 	"github.com/spf13/cobra"
-	"strconv"
 	kube "github.com/ewanf2/cli_tool/internal/kube"
 	"k8s.io/client-go/tools/clientcmd"
 	"k8s.io/client-go/kubernetes"
@@ -30,35 +29,21 @@ var rootCmd = &cobra.Command{
 	PersistentPreRun: func(cmd *cobra.Command, args []string) {
 		kubeConfig = kube.GetKubeConfig()
 		kubeClient,_ = kube.GetClientset(kubeConfig)
-		kubeNamespace, _ = kube.GetNamespace(kubeConfig)
+		kubeNamespace, _ = kube.GetNamespace(kubeConfig) //TODO
 	},
 	Run: func(cmd *cobra.Command, args []string) { 
 		fmt.Println("Welcome to my CLI. hey lol")
 	},
 }
-var greetCMD = &cobra.Command{
-	Use: "greet",
+var testCMD = &cobra.Command{
+	Use: "test",
 	Short: "Greet the user innit",
 	Long: "Function that greets the user i guess",
 	Run: func(cmd *cobra.Command, args []string) {
-		fmt.Println("Hello,", args[0])
+		
 	},
 }
 
-var quickmaths = &cobra.Command{
-	Use: "add",
-	Short: "maths innit",
-	Long: "maths innit bruv",
-	Args: cobra.ExactArgs(2),
-	RunE: func(cmd *cobra.Command, args []string) error {
-		x, err := strconv.Atoi(args[0])
-		if err != nil { return fmt.Errorf("invalid x: %w", err)}
-		y, err2 := strconv.Atoi(args[1])
-		if err2 != nil { return fmt.Errorf("invalid y: %w", err2)}
-		fmt.Println(x+y)
-		return nil
-	},
-}
 // Execute adds all child commands to the root command and sets flags appropriately.
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
@@ -72,9 +57,8 @@ func init() {
 	// Here you will define your flags and configuration settings.
 	// Cobra supports persistent flags, which, if defined here,
 	// will be global for your application.
-	rootCmd.AddCommand(greetCMD)
+	rootCmd.AddCommand(testCMD)
 	// rootCmd.PersistentFlags().StringVar(&cfgFile, "config", "", "config file (default is $HOME/.cli_tool.yaml)")
-	rootCmd.AddCommand(quickmaths)
 	// Cobra also supports local flags, which will only run
 	// when this action is called directly.
 	rootCmd.Flags().BoolP("toggle", "t", false, "Help message for toggle")
