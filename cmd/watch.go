@@ -18,14 +18,19 @@ import (
 
 var getpods = &cobra.Command{
 	Use: "watch",
-	Short: "Get pods",
+	Short: "Display workload status of Helm release",
 	Long: "Get pods init",
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		releaseName := fmt.Sprintf(args[0])
-		kube.GetDeploy(kubeClient, kubeNamespace,releaseName)
-		kube.GetStateful(kubeClient, kubeNamespace, releaseName)
-		kube.GetDaemonset(kubeClient, kubeNamespace, releaseName)
+		
+		deployments,_ := kube.GetDeploy(kubeClient, kubeNamespace,releaseName)
+		daemonsets,_ := kube.GetDaemonset(kubeClient, kubeNamespace, releaseName)
+		statefulsets,_ := kube.GetStateful(kubeClient, kubeNamespace, releaseName)
+
+		kube.DescribeWorkload(daemonsets, kubeClient, kubeNamespace)
+		kube.DescribeWorkload(deployments, kubeClient, kubeNamespace)
+		kube.DescribeWorkload(statefulsets, kubeClient, kubeNamespace)
 		return nil
 	},
 }

@@ -1,29 +1,22 @@
 package kube
 
 import (
-	"context"
 	"fmt"
-	"sort"
-	"github.com/pterm/pterm"
-	appsv1 "k8s.io/api/apps/v1"
-	corev1 "k8s.io/api/core/v1"
-	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
-	// "k8s.io/apimachinery/pkg/labels"
+
 	"k8s.io/client-go/kubernetes"
 	"k8s.io/client-go/tools/clientcmd"
-	// "k8s.io/client-go/tools/events"
 )
 
 // Creating kubeconfig file, contains things like namespaces and stuff
-func GetKubeConfig() (clientcmd.ClientConfig) {
+func GetKubeConfig() clientcmd.ClientConfig {
 	loadingRules := clientcmd.NewDefaultClientConfigLoadingRules()
 	configOverr := &clientcmd.ConfigOverrides{}
 	kubeConfig := clientcmd.NewNonInteractiveDeferredLoadingClientConfig(loadingRules, configOverr)
-	
+
 	return kubeConfig
 }
 
-// Creating clientset based off kubeconfig. Object with methods of
+// Creating clientset based off kubeconfig.
 func GetClientset(kubeconfig clientcmd.ClientConfig) (kubernetes.Interface, error) {
 
 	restConfig, err := kubeconfig.ClientConfig()
@@ -39,13 +32,12 @@ func GetClientset(kubeconfig clientcmd.ClientConfig) (kubernetes.Interface, erro
 	return client, nil
 }
 
+// Get Current namespace
 func GetNamespace(kubeconfig clientcmd.ClientConfig) (string, error) {
-	
+
 	ns, _, err := kubeconfig.Namespace()
 	if err != nil {
 		return "Unable to get namespace", err
 	}
 	return ns, nil
 }
-
-
