@@ -36,13 +36,14 @@ func DescribeDeployment(deployments []appsv1.Deployment, kubeClient kubernetes.I
 	for _, d := range deployments {
 		selector := d.Spec.Selector
 		events, _ := FindPodEvents(kubeClient, selector, namespace)
-
+		pods,_ := GetPods(kubeClient,namespace, selector)
 		running, pending, failed, _, _, _ := GetPodPhases(kubeClient, namespace, selector)
 		podPhases := fmt.Sprintf("%d Running | %d Pending | %d Failed", running, pending, failed)
 
 		ready := fmt.Sprintf("%d/%d", d.Status.Replicas, *d.Spec.Replicas)
 		eventNode, _ := CreateEventTreeNode(events)
-
+		containerStats,_ := GetContainerStatuses(pods)
+		statusTree := CreateStatusTree(containerStats)
 		tree := pterm.TreeNode{Text: d.Name,
 			Children: []pterm.TreeNode{
 				{Text: "Kind: Deployment"},
@@ -50,6 +51,7 @@ func DescribeDeployment(deployments []appsv1.Deployment, kubeClient kubernetes.I
 				{Text: fmt.Sprintf("Replicas: %s", ready)},
 				{Text: fmt.Sprintf("Pod phases: %s", podPhases)},
 				{Text: "Events", Children: eventNode},
+				{Text: "Container Status", Children: statusTree},
 			}}
 		pterm.DefaultTree.WithRoot(tree).Render()
 		treeList = append(treeList, tree)
@@ -82,7 +84,14 @@ func DescribeStatefulset(statefuls []appsv1.StatefulSet, kubeClient kubernetes.I
 	}
 	return treeList, nil
 }
-
+func CreateStatusTree(summaries []ContainerSummary) ([]pterm.TreeNode) {
+	var treeList []pterm.TreeNode
+	for _,cs := range summaries {
+		text := fmt.Sprintf("%s %s" ,cs.Name,cs.State)
+		treeList = append(treeList, pterm.TreeNode{Text: text})
+	}
+	return treeList
+}
 func DescribeDaemonset(daemons []appsv1.DaemonSet, kubeClient kubernetes.Interface, namespace string) ([]pterm.TreeNode, error) {
 	var treeList []pterm.TreeNode
 	for _, ds := range daemons {
@@ -98,6 +107,7 @@ func DescribeDaemonset(daemons []appsv1.DaemonSet, kubeClient kubernetes.Interfa
 		if eventNode == nil {
 			eventNode = append(eventNode, pterm.TreeNode{Text: "No events found"})
 		}
+
 		tree := pterm.TreeNode{Text: ds.Name,
 			Children: []pterm.TreeNode{
 				{Text: "Kind: Deployment"},
