@@ -2,7 +2,7 @@
 
 set -e
 
-REPO="yourusername/ht"
+REPO="ewanf2/cli_tool"
 BINARY="ht"
 INSTALL_DIR="/usr/local/bin"
 
