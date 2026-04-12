@@ -30,7 +30,7 @@ func CreateEventTreeNode(events []corev1.Event) ([]pterm.TreeNode, error) {
 	}
 	return eventNode, nil
 }
-
+// DescribeDeployment writes deployment events, status, and health check results to stdout.
 func DescribeDeployment(deployments []appsv1.Deployment, kubeClient kubernetes.Interface, namespace string) ([]pterm.TreeNode, error) {
 	var treeList []pterm.TreeNode
 	for _, d := range deployments {
@@ -38,13 +38,17 @@ func DescribeDeployment(deployments []appsv1.Deployment, kubeClient kubernetes.I
 		events, _ := FindPodEvents(kubeClient, selector, namespace)
 		pods,_ := GetPods(kubeClient,namespace, selector)
 		running, pending, failed, _, _, _ := GetPodPhases(kubeClient, namespace, selector)
-		podPhases := fmt.Sprintf("%d Running | %d Pending | %d Failed", running, pending, failed)
+		podPhases := fmt.Sprintf("%s | %s | %s",
+			pterm.FgLightGreen.Sprintf("%d Running", running),
+			pterm.FgLightYellow.Sprintf("%d Pending", pending),
+			pterm.FgLightRed.Sprintf("%d Failed", failed),
+		)
 
 		ready := fmt.Sprintf("%d/%d", d.Status.Replicas, *d.Spec.Replicas)
 		eventNode, _ := CreateEventTreeNode(events)
 		containerStats,_ := GetContainerStatuses(pods)
 		statusTree := CreateStatusTree(containerStats)
-		tree := pterm.TreeNode{Text: d.Name,
+		tree := pterm.TreeNode{Text: pterm.Bold.Sprintf("[%s]", d.Name),
 			Children: []pterm.TreeNode{
 				{Text: "Kind: Deployment"},
 				{Text: fmt.Sprintf("Image: %s", d.Spec.Template.Spec.Containers[0].Image)},
@@ -58,62 +62,80 @@ func DescribeDeployment(deployments []appsv1.Deployment, kubeClient kubernetes.I
 	}
 	return treeList, nil
 }
-
+// DescribeStatefulset writes deployment events, status, and health check results to stdout.
 func DescribeStatefulset(statefuls []appsv1.StatefulSet, kubeClient kubernetes.Interface, namespace string) ([]pterm.TreeNode, error) {
 	var treeList []pterm.TreeNode
 	for _, ss := range statefuls {
 		selector := ss.Spec.Selector
-
+		pods,_ := GetPods(kubeClient,namespace, selector)
 		events, _ := FindPodEvents(kubeClient, selector, namespace)
 		ready := fmt.Sprintf("%d/%d", ss.Status.Replicas, *ss.Spec.Replicas)
 
 		running, pending, failed, _, _, _ := GetPodPhases(kubeClient, namespace, selector)
-		podPhases := fmt.Sprintf("%d Running | %d Pending | %d Failed", running, pending, failed)
+		podPhases := fmt.Sprintf("%s | %s | %s",
+			pterm.FgLightGreen.Sprintf("%d Running", running),
+			pterm.FgLightYellow.Sprintf("%d Pending", pending),
+			pterm.FgLightRed.Sprintf("%d Failed", failed),
+		)
 
+		containerStats,_ := GetContainerStatuses(pods)
+		statusTree := CreateStatusTree(containerStats)
 		eventNode, _ := CreateEventTreeNode(events)
 
-		tree := pterm.TreeNode{Text: ss.Name,
+		tree := pterm.TreeNode{Text:pterm.Bold.Sprintf("[%s]", ss.Name),
 			Children: []pterm.TreeNode{
 				{Text: "Kind: StatefulSet"},
 				{Text: fmt.Sprintf("Image: %s", ss.Spec.Template.Spec.Containers[0].Image)},
 				{Text: fmt.Sprintf("Ready Replicas: %s", ready)},
 				{Text: fmt.Sprintf("Pod phases: %s", podPhases)},
+				{Text: "Container Status", Children: statusTree},
 				{Text: "Events", Children: eventNode},
 			}}
 		pterm.DefaultTree.WithRoot(tree).Render()
 	}
 	return treeList, nil
 }
+//Creating pterm tree with container status
 func CreateStatusTree(summaries []ContainerSummary) ([]pterm.TreeNode) {
 	var treeList []pterm.TreeNode
 	for _,cs := range summaries {
-		text := fmt.Sprintf("%s %s" ,cs.Name,cs.State)
+		text := fmt.Sprintf("[%s] %s %s %s" ,cs.PodName,cs.State,cs.Reason,cs.Message)
 		treeList = append(treeList, pterm.TreeNode{Text: text})
 	}
 	return treeList
 }
+// DescribeDaemonset writes deployment events, status, and health check results to stdout.
 func DescribeDaemonset(daemons []appsv1.DaemonSet, kubeClient kubernetes.Interface, namespace string) ([]pterm.TreeNode, error) {
 	var treeList []pterm.TreeNode
 	for _, ds := range daemons {
 		selector := ds.Spec.Selector
-
+		pods,_ := GetPods(kubeClient,namespace, selector)
 		events, _ := FindPodEvents(kubeClient, selector, namespace)
 
 		running, pending, failed, _, _, _ := GetPodPhases(kubeClient, namespace, selector)
-		podPhases := fmt.Sprintf("%d Running | %d Pending | %d Failed", running, pending, failed)
+		podPhases := fmt.Sprintf("%s | %s | %s",
+			pterm.FgLightGreen.Sprintf("%d Running", running),
+			pterm.FgLightYellow.Sprintf("%d Pending", pending),
+			pterm.FgLightRed.Sprintf("%d Failed", failed),
+		)
+		
 
 		ready := fmt.Sprintf("%d/%d", ds.Status.NumberReady, ds.Status.DesiredNumberScheduled)
+
+		containerStats,_ := GetContainerStatuses(pods)
+		statusTree := CreateStatusTree(containerStats)
 		eventNode, _ := CreateEventTreeNode(events)
 		if eventNode == nil {
 			eventNode = append(eventNode, pterm.TreeNode{Text: "No events found"})
 		}
 
-		tree := pterm.TreeNode{Text: ds.Name,
+		tree := pterm.TreeNode{Text: pterm.Bold.Sprintf("[%s]", ds.Name),
 			Children: []pterm.TreeNode{
 				{Text: "Kind: Deployment"},
 				{Text: fmt.Sprintf("Image: %s", ds.Spec.Template.Spec.Containers[0].Image)},
 				{Text: fmt.Sprintf("Replicas: %s", ready)},
 				{Text: fmt.Sprintf("Pod phases: %s", podPhases)},
+				{Text: "Container Status", Children: statusTree},
 				{Text: "Events: ", Children: eventNode},
 			}}
 		pterm.DefaultTree.WithRoot(tree).Render()

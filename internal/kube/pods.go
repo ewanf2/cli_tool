@@ -47,7 +47,8 @@ func GetPodPhases(kubeClient kubernetes.Interface, namespace string, selector *m
 }
 
 type ContainerSummary struct {
-	Name         string
+	PodName      string
+	ContainerName         string
 	State        string
 	Reason       string
 	Message      string
@@ -63,7 +64,8 @@ func GetContainerStatuses(pods []corev1.Pod) ([]ContainerSummary, error) {
 			switch {
 			case containerStat.State.Running != nil:
 				summary = append(summary, ContainerSummary{
-					Name:         containerStat.Name,
+					PodName:      pod.Name,
+					ContainerName:         containerStat.Name,
 					State:        fmt.Sprintf("%t", containerStat.Ready),
 					Reason:       "",
 					Message:      "",
@@ -72,7 +74,8 @@ func GetContainerStatuses(pods []corev1.Pod) ([]ContainerSummary, error) {
 				})
 			case containerStat.State.Waiting != nil:
 				summary = append(summary, ContainerSummary{
-					Name:         containerStat.Name,
+					PodName:      pod.Name,
+					ContainerName:         containerStat.Name,
 					State:        fmt.Sprintf("%t", containerStat.Ready),
 					Reason:       fmt.Sprintf("[%s]", containerStat.State.Waiting.Reason),
 					Message: 	  containerStat.State.Waiting.Message,
@@ -81,7 +84,8 @@ func GetContainerStatuses(pods []corev1.Pod) ([]ContainerSummary, error) {
 				})
 			case containerStat.State.Terminated != nil:
 				summary = append(summary, ContainerSummary{
-					Name:         containerStat.Name,
+					PodName:      pod.Name,
+					ContainerName:         containerStat.Name,
 					State:        fmt.Sprintf("%t", containerStat.Ready),
 					Reason:       fmt.Sprintf("[%s]", containerStat.State.Terminated.Reason),
 					Message: 	  containerStat.State.Waiting.Message,
@@ -94,3 +98,5 @@ func GetContainerStatuses(pods []corev1.Pod) ([]ContainerSummary, error) {
 	}
 	return summary, nil
 }
+
+

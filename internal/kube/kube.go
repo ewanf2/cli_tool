@@ -41,3 +41,10 @@ func GetNamespace(kubeconfig clientcmd.ClientConfig) (string, error) {
 	}
 	return ns, nil
 }
+
+func DefaultString(val string, def string) string {
+	if val == "" { 
+		return def
+	}
+	return val
+}
