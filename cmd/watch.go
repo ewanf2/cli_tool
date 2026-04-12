@@ -19,7 +19,7 @@ import (
 var getpods = &cobra.Command{
 	Use: "watch",
 	Short: "Display workload status of Helm release",
-	Long: "Get pods init",
+	Long: "Shows all statefulsets,deployments and daemonsets under a helm release. Displays pod readiness, container statuses and pod events",
 	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
 		releaseName := fmt.Sprintf(args[0])
