@@ -20,7 +20,7 @@ jobs:
       - name: Build binaries
         run: |
           # build for multiple platforms
-          
+
           GOOS=linux GOARCH=amd64 go build -o dist/ht .
           tar -czf dist/ht-linux-amd64.tar.gz -C dist ht
           rm dist/ht
@@ -32,7 +32,10 @@ jobs:
           GOOS=darwin GOARCH=amd64 go build -o dist/ht .
           tar -czf dist/ht-darwin-amd64.tar.gz -C dist ht
           rm dist/ht
-   
+
+          GOOS=darwin GOARCH=arm64 go build -o dist/ht .
+          tar -czf dist/ht-darwin-arm64.tar.gz -C dist ht
+          rm dist/ht
 
       - name: Release
         uses: softprops/action-gh-release@v1
