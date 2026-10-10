@@ -10,7 +10,7 @@ INSTALL_DIR="/usr/local/bin"
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')
 ARCH=$(uname -m)
 
-# normalise arch
+# normalise arch (macOS reports arm64, Linux reports aarch64)
 case $ARCH in
   x86_64|amd64) ARCH="amd64" ;;
   aarch64|arm64) ARCH="arm64" ;;
@@ -24,18 +24,13 @@ case $OS in
   *) echo "Unsupported OS: $OS"; exit 1 ;;
 esac
 
-# get latest release tag from github
-VERSION=$(curl -s "https://api.github.com/repos/$REPO/releases/latest" \
-  | grep '"tag_name"' \
-  | sed -E 's/.*"tag_name": "([^"]+)".*/\1/')
-
-echo "Installing $BINARY $VERSION for $OS-$ARCH..."
-
-# download and extract
+# download from the latest release (GitHub redirects this to the newest non-prerelease)
 FILENAME="${BINARY}-${OS}-${ARCH}.tar.gz"
-URL="https://github.com/$REPO/releases/download/$VERSION/$FILENAME"
+URL="https://github.com/$REPO/releases/latest/download/$FILENAME"
 
-curl -sL "$URL" -o "/tmp/$FILENAME"
+echo "Installing $BINARY for $OS-$ARCH..."
+
+curl -fsSL "$URL" -o "/tmp/$FILENAME" || { echo "Download failed: $URL"; exit 1; }
 tar -xzf "/tmp/$FILENAME" -C /tmp
 chmod +x "/tmp/$BINARY"
 
